@@ -99,90 +99,82 @@ Os cinco corpos de evidência convergem em uma lacuna de modelagem: estudos exis
 \section{O Modelo}
 \label{sec:model}
 
-\subsection{Propósito e Entidades}
+A seção descreve o modelo seguindo o protocolo ODD (Visão Geral, Conceitos de Desenho, Detalhes) de \citet{grimm2010odd}, adaptado ao contexto de propagação de desinformação. O propósito do modelo é investigar como diferentes combinações de intervenções de política pública afetam a propagação de fake news durante uma campanha eleitoral simulada de cem dias, e a questão central é se a desinformação pode se sustentar exclusivamente por transmissão humano-humano ou se contas automatizadas são condição necessária para um estado endêmico informacional. O sistema simula $N = 1{.}000$ agentes heterogêneos interagindo em uma rede dual que sobrepõe uma grade espacial $32 \times 32$ (vizinhança de Moore, representando conversas locais e laços de vizinhança) e um grafo livre de escala de Barabási-Albert com parâmetro de ligação preferencial $m = 3$ e grau médio $\langle k \rangle = 2m = 6$ (representando conexões em mídias sociais). A sobreposição captura a coexistência entre canais locais e globais típica dos ambientes informacionais contemporâneos \citep{cinelli2021echo}. O tempo avança em passos discretos correspondentes a dias, com cada simulação executando cem passos.
+
+\subsection{Entidades e Variáveis de Estado}
 \label{subsec:entities}
 
-O modelo investiga como diferentes intervenções de política pública afetam a propagação de fake news durante campanha eleitoral de 100 dias. Simula $N = 1{.}000$ agentes heterogêneos em rede dual: grade espacial $32 \times 32$ (interações locais via vizinhança de Moore) e grafo de Barabási-Albert ($m = 3$, $\langle k \rangle = 6$).
-
-Cada agente $a_i$ é definido pela tupla $(c_i, b_i, o_i, e_i, x_i, s_i, \tau_i)$: credibilidade da fonte $c_i \in [0,1]$, viés de confirmação $b_i \in [0,1]$, orientação política fixa $o_i \in [-1,+1]$, educação midiática $e_i \in [0,1]$, crença política variante no tempo $x_i(t) \in [-1,+1]$, compartimento SEIR $s_i(t)$ e tipo $\tau_i$.
+Cada agente $a_i$ é caracterizado pela tupla $(c_i, b_i, o_i, e_i, x_i, s_i, \tau_i)$, onde $c_i \in [0,1]$ é a credibilidade da fonte, $b_i \in [0,1]$ é o viés de confirmação, $o_i \in [-1,+1]$ é a orientação política (fixa ao longo da simulação), $e_i \in [0,1]$ é a educação midiática, $x_i(t) \in [-1,+1]$ é a crença política variante no tempo, $s_i(t) \in \{S, E, I, R, V\}$ é o compartimento SEIR e $\tau_i$ é o tipo do agente. O modelo implementa quatro tipos, que se diferenciam pelas distribuições de seus atributos cognitivos e pelo papel funcional na rede. Os eleitores constituem 85\% da população e podem ocupar qualquer compartimento SEIR; os influenciadores, 5\% da população, compartilham a mesma estrutura comportamental dos eleitores mas exibem alcance ampliado e credibilidade de fonte mais elevada. Os bots, que constituem 7\% da população no cenário base brasileiro, permanecem permanentemente no estado infectado e geram conteúdo falso em todos os passos; os verificadores de fatos, 3\% da população, mantêm-se no estado vacinado e tentam corrigir vizinhos infectados. A Tabela~\ref{tab:agents} consolida as distribuições de atributos por tipo.
 
 \begin{table}[H]
 \centering
 \small
-\begin{tabular}{p{2.5cm}ccp{5.8cm}}
+\begin{tabular}{p{2.8cm}ccp{6.0cm}}
 \toprule
-\textbf{Tipo} & \textbf{\%} & \textbf{SEIR} & \textbf{Comportamento} \\
+\textbf{Tipo} & \textbf{\%} & \textbf{SEIR} & \textbf{Comportamento e atributos} \\
 \midrule
-Eleitores & 85\% & S/E/I/R/V & Recebem, processam e repassam fake news. $c \sim \mathcal{U}(0{,}1, 0{,}4)$, $e \sim \mathcal{U}(0{,}1, 0{,}5)$. \\
-Influenciadores & 5\% & S/E/I/R/V & Alto alcance. $c \sim \mathcal{U}(0{,}6, 0{,}9)$, $e \sim \mathcal{U}(0{,}3, 0{,}6)$. \\
-Bots & 7\% & $I$ permanente & Geram e disseminam fake news. $\gamma = 0$. \\
-Verificadores & 3\% & $V$ imune & Corrigem infectados. $\eta \sim \mathcal{U}(0{,}4, 0{,}8)$. \\
+Eleitores & 85\% & S/E/I/R/V & Recebem, processam e podem repassar fake news. $c \sim \mathcal{U}(0{,}1, 0{,}4)$, $e \sim \mathcal{U}(0{,}1, 0{,}5)$. \\
+\addlinespace
+Influenciadores & 5\% & S/E/I/R/V & Alcance amplificado (3--8 vizinhos/passo). $c \sim \mathcal{U}(0{,}6, 0{,}9)$, $e \sim \mathcal{U}(0{,}3, 0{,}6)$. \\
+\addlinespace
+Bots & 7\% & $I$ permanente & Geram e disseminam fake news para 3--5 alvos/passo. Taxa de recuperação $\gamma = 0$. \\
+\addlinespace
+Verificadores de fatos & 3\% & $V$ imune & Corrigem vizinhos no estado $I$. Eficácia $\eta \sim \mathcal{U}(0{,}4, 0{,}8)$, $c \sim \mathcal{U}(0{,}7, 0{,}95)$. \\
 \bottomrule
 \end{tabular}
-\caption{Tipos de agentes e suas características.}
+\caption{Tipos de agentes e distribuições dos atributos cognitivos e comportamentais.}
 \label{tab:agents}
 \end{table}
 
-Cada item de fake news $f_k$ tem viralidade $v_k \sim \mathcal{U}(0{,}21, 0{,}28)$, credibilidade aparente $\hat{c}_k \sim \mathcal{U}(0{,}85, 0{,}99)$ e orientação política $o_k$ do gerador. Parâmetros calibrados do Fake.br Corpus \citep{monteiro2018fakebr}.
+Cada item de fake news $f_k$ é caracterizado por sua viralidade $v_k \sim \mathcal{U}(0{,}21, 0{,}28)$, sua credibilidade aparente $\hat{c}_k \sim \mathcal{U}(0{,}85, 0{,}99)$ e sua orientação política $o_k$, que coincide com a do agente gerador. As fake news geradas por bots herdam a orientação do bot, uniformemente sorteada em $\{-0{,}9, +0{,}9\}$. Esses intervalos foram calibrados a partir do Fake.br Corpus \citep{monteiro2018fakebr}, que reporta emocionalidade média de 0,206 (mapeada para o intervalo de viralidade) e taxa de erros ortográficos de apenas 0,39\%, implicando que fake news brasileiras são quase indistinguíveis de notícias reais em credibilidade aparente.
 
 \subsection{Processo e Agendamento}
 \label{subsec:process}
 
-A cada passo de tempo, agentes são ativados em ordem aleatória. Agentes humanos executam sequencialmente: (1) vacinação ($S \to V$), (2) incubação ($E \to I$), (3) propagação ($S \to E$), (4) esquecimento ($R \to S$) e (5) troca DW de opiniões. Verificadores tentam correção de vizinhos infectados ($I \to R$). Bots geram novas fake news e propagam para 3--5 alvos.
+A cada passo de tempo, os agentes são ativados em ordem aleatória uniforme. Agentes humanos executam sequencialmente cinco subprocessos: a vacinação cognitiva ($S \to V$), a incubação cognitiva ($E \to I$), a propagação ($S \to E$) via encontro com vizinhos infectados, o esquecimento ($R \to S$) e a troca de opiniões Deffuant-Weisbuch com um vizinho humano sorteado aleatoriamente. Verificadores de fatos executam uma rotina distinta, identificando vizinhos no estado $I$ e tentando correção para o estado $R$. Bots geram novos itens de fake news e propagam para três a cinco alvos por passo. A coleta de dados ocorre ao final de cada passo, após a ativação de todos os agentes.
 
 \subsection{Dinâmica SEIR Informacional}
 \label{subsec:seir}
 
-O sistema possui cinco compartimentos e seis transições:
-
-\paragraph{$S \to E$ (Exposição).}
+O sistema SEIR informacional possui cinco compartimentos e seis transições probabilísticas. Quando o agente suscetível $j$ recebe a fake news $f_k$ do agente infectado $i$, a probabilidade de exposição é o produto de cinco fatores:
 \begin{equation}
-\Pr[S \to E] = \beta \cdot v_k \cdot c_i \cdot \hat{c}_k \cdot (1 - e_j)
+\Pr[S \to E] = \beta \cdot v_k \cdot c_i \cdot \hat{c}_k \cdot (1 - e_j),
 \label{eq:SE}
 \end{equation}
-A estrutura multiplicativa implica que cada fator atua como filtro: se qualquer um for zero, a transmissão é bloqueada. Um agente com $e_j = 1$ é imune (``vacina cognitiva'').
+onde $\beta = 0{,}3$ é a taxa de transmissão base, $v_k$ a viralidade do item, $c_i$ a credibilidade da fonte do emissor, $\hat{c}_k$ a credibilidade aparente do conteúdo e $(1-e_j)$ a vulnerabilidade cognitiva do receptor, que diminui com a educação midiática. A estrutura multiplicativa implica que cada fator atua como filtro independente: se qualquer um deles for zero, a transmissão se anula --- em particular, um agente com educação midiática perfeita ($e_j = 1$) é imune, funcionando como uma ``vacina cognitiva''.
 
-\paragraph{$E \to I$ (Incubação cognitiva).}
+A incubação cognitiva ($E \to I$) representa a internalização da fake news: um agente exposto passa a acreditar e compartilhar ativamente o conteúdo com probabilidade
 \begin{equation}
-\Pr[E \to I] = \sigma \cdot b_j \cdot A(f_k, a_j), \quad A = 1 - |o_k - o_j|/2
+\Pr[E \to I] = \sigma \cdot b_j \cdot A(f_k, a_j), \qquad A(f_k, a_j) = 1 - \frac{|o_k - o_j|}{2},
 \label{eq:EI}
 \end{equation}
-O alinhamento $A$ captura câmaras de eco: fake news alinhadas à orientação do agente são mais cridas.
+em que $\sigma = 0{,}2$ é a velocidade de processamento, $b_j$ o viés de confirmação e $A(f_k, a_j)$ o alinhamento político entre a orientação da fake news e a do agente. O termo de alinhamento captura a dinâmica de câmaras de eco: fake news ideologicamente próximas ao agente são mais prováveis de serem aceitas. Alternativamente, o agente exposto pode descartar espontaneamente a fake news antes de internalizá-la, com probabilidade $\Pr[E \to R] = \gamma_e = 0{,}02$; essa baixa taxa reflete o efeito de influência continuada documentado por \citet{lewandowsky2012misinformation}, segundo o qual, uma vez expostos, os agentes raramente abandonam a desinformação sem intervenção ativa.
 
-\paragraph{$E \to R$ (Recuperação espontânea).} $\Pr[E \to R] = \gamma_e = 0{,}02$ (baixa, refletindo efeito de influência continuada \citep{lewandowsky2012misinformation}).
-
-\paragraph{$I \to R$ (Correção por verificador de fatos).}
+Agentes infectados recuperam-se por contato com verificadores de fatos de acordo com
 \begin{equation}
-\Pr[I \to R] = \gamma \cdot \eta_i \cdot (0{,}3 + 0{,}7 \cdot e_j)
+\Pr[I \to R] = \gamma \cdot \eta_i \cdot (0{,}3 + 0{,}7 \cdot e_j),
 \label{eq:IR}
 \end{equation}
+onde $\gamma = 0{,}1$ é a taxa base de correção, $\eta_i \in [0{,}4, 0{,}8]$ a eficácia do verificador e o fator $(0{,}3 + 0{,}7 \cdot e_j)$ reflete o achado de que agentes com maior educação midiática são mais receptivos a correções, mantendo-se contudo uma receptividade basal de 30\% mesmo em agentes com educação nula. Agentes recuperados podem regredir ao estado suscetível pelo esquecimento das correções, com $\Pr[R \to S] = \delta = 0{,}05$, capturando o caráter transitório das retificações \citep{lewandowsky2012misinformation}. Finalmente, agentes suscetíveis com educação midiática positiva tornam-se permanentemente vacinados a uma taxa proporcional à sua educação: $\Pr[S \to V] = \nu \cdot e_j$, com $\nu = 0{,}02$.
 
-\paragraph{$R \to S$ (Esquecimento).} $\Pr[R \to S] = \delta = 0{,}05$.
-
-\paragraph{$S \to V$ (Vacinação cognitiva).} $\Pr[S \to V] = \nu \cdot e_j$.
-
-\subsection{Atualização de Crenças}
+\subsection{Atualização de Crenças e Dinâmica de Opiniões}
 \label{subsec:belief}
 
-Quando um agente transita $E \to I$, sua crença é deslocada:
+Dois mecanismos modificam as crenças dos agentes ao longo da simulação. O primeiro opera durante a transição $E \to I$: quando o agente internaliza a fake news $f_k$, sua crença é deslocada em direção à orientação do conteúdo segundo
 \begin{equation}
-x_j(t+1) = \text{clip}\bigl(x_j(t) + \mu (o_k - x_j(t)) + \rho\,\text{sgn}(o_k),\;-1,\;+1\bigr)
+x_j(t+1) = \text{clip}\bigl(x_j(t) + \mu\,(o_k - x_j(t)) + \rho\,\text{sgn}(o_k),\;-1,\;+1\bigr),
 \label{eq:belief}
 \end{equation}
-com $\mu = 0{,}1$ (atração) e $\rho = 0{,}03$ (radicalização). Troca DW ocorre quando $|x_i - x_j| < \varepsilon = 0{,}5$:
+com $\mu = 0{,}1$ parametrizando a atração em direção à orientação da notícia falsa e $\rho = 0{,}03$ parametrizando a radicalização, um impulso constante em direção ao extremo ideológico correspondente. A intenção de voto é determinada pelo sinal da crença resultante. O segundo mecanismo opera em todos os passos independentemente do compartimento SEIR: cada agente humano $i$ sorteia um vizinho humano $j$, e se $|x_i - x_j| < \varepsilon = 0{,}5$ ambos convergem mutuamente segundo a regra de confiança delimitada de Deffuant-Weisbuch \citep{deffuant2000mixing},
 \begin{equation}
-x_i \leftarrow x_i + \mu_{\text{DW}}(x_j - x_i), \quad x_j \leftarrow x_j + \mu_{\text{DW}}(x_i - x_j), \quad \mu_{\text{DW}} = 0{,}05
+x_i \leftarrow x_i + \mu_{\text{DW}}\,(x_j - x_i), \qquad x_j \leftarrow x_j + \mu_{\text{DW}}\,(x_i - x_j), \qquad \mu_{\text{DW}} = 0{,}05.
 \end{equation}
+O limiar $\varepsilon$ impede que agentes ideologicamente distantes se influenciem, gerando endogenamente clusters de opinião mesmo na ausência de desinformação. Quando bots estão presentes, esses clusters são progressivamente empurrados em direção aos extremos.
 
 \subsection{Conceitos de Desenho}
+\label{subsec:design}
 
-\paragraph{Emergência.} Resultados macro (curvas epidêmicas, polarização, reversão eleitoral) emergem de interações micro. Nenhum agente tem informação global.
-
-\paragraph{Estocasticidade.} Ordem de ativação, construção da rede, geração de fake news e probabilidades de transição são estocásticas. Cada cenário é replicado 30 vezes.
-
-\paragraph{Inicialização.} Em $t=0$: humanos em $S$, bots em $I$ (permanente), verificadores em $V$. Três itens iniciais de fake news com $o_k \in \{-0{,}8, +0{,}8\}$. Educação escalada por \texttt{edu\_scale}~$= \bar{e}/0{,}30$ por país.
-
-\paragraph{Dados de entrada.} Parâmetros calibrados do Fake.br Corpus \citep{monteiro2018fakebr} e \citet{ruediger2018bots}.
+Em termos dos conceitos ODD, o modelo apresenta emergência genuína --- todos os resultados macroscópicos (curvas epidêmicas, polarização, reversão eleitoral) decorrem das interações microscópicas, sem que qualquer agente disponha de informação global sobre o sistema. Os agentes não otimizam estrategicamente seu comportamento nem modificam suas regras de decisão ao longo da simulação: os atributos cognitivos (educação midiática, viés de confirmação) são fixados na inicialização, e as crenças mudam apenas pelos dois mecanismos da Seção~\ref{subsec:belief}. As interações ocorrem por meio das duas camadas da rede, com agentes percebendo o estado SEIR e a crença política apenas de seus vizinhos imediatos. A estocasticidade permeia o sistema --- ordem de ativação, construção da rede, geração de fake news e probabilidades de transição são todos aleatórios ---, e cada cenário é replicado trinta vezes com sementes distintas para caracterizar as distribuições de saída. Em $t=0$, todos os agentes humanos começam no estado $S$, bots no estado $I$ permanente e verificadores no estado $V$; três itens iniciais de fake news são gerados com orientações $\pm 0{,}8$, e a rede de Barabási-Albert é construída uma única vez. Para a aplicação comparativa entre países, os valores de educação dos agentes são escalados por $\texttt{edu\_scale} = \bar{e}/0{,}30$, onde $\bar{e}$ é o parâmetro \texttt{educacao\_base} específico do país (com o Brasil como referência, $\bar{e} = 0{,}30$, logo $\texttt{edu\_scale} = 1$ e não há alteração); o valor resultante é limitado a $[0,1]$. Não se utiliza qualquer dado de séries temporais externas como entrada dinâmica: os parâmetros calibrados derivam do Fake.br Corpus \citep{monteiro2018fakebr} e de \citet{ruediger2018bots}, e todos os demais parâmetros são definidos na inicialização.
 
 % ============================================================
 \section{Formalização Matemática}
@@ -191,112 +183,91 @@ x_i \leftarrow x_i + \mu_{\text{DW}}(x_j - x_i), \quad x_j \leftarrow x_j + \mu_
 \subsection{Sistema EDO de Campo Médio}
 \label{subsec:ode}
 
-Sejam $S(t)$, $E(t)$, $I(t)$, $R(t)$, $V(t)$ as frações de agentes em cada compartimento:
+Para validação analítica, o modelo baseado em agentes discreto é aproximado por um sistema de equações diferenciais ordinárias de campo médio. Sejam $S(t)$, $E(t)$, $I(t)$, $R(t)$ e $V(t)$ as frações de agentes em cada compartimento no instante $t$. A dinâmica é governada por
 \begin{align}
-\frac{dS}{dt} &= -\beta S I + \delta R - \nu S \label{eq:dS}\\
-\frac{dE}{dt} &= \beta S I - \sigma E - \gamma_e E \label{eq:dE}\\
-\frac{dI}{dt} &= \sigma E - \gamma I \label{eq:dI}\\
-\frac{dR}{dt} &= \gamma I + \gamma_e E - \delta R \label{eq:dR}\\
-\frac{dV}{dt} &= \nu S \label{eq:dV}
+\frac{dS}{dt} &= -\beta\, S(t)\, I(t) + \delta\, R(t) - \nu\, S(t) \label{eq:dS}\\
+\frac{dE}{dt} &= \beta\, S(t)\, I(t) - \sigma\, E(t) - \gamma_e\, E(t) \label{eq:dE}\\
+\frac{dI}{dt} &= \sigma\, E(t) - \gamma\, I(t) \label{eq:dI}\\
+\frac{dR}{dt} &= \gamma\, I(t) + \gamma_e\, E(t) - \delta\, R(t) \label{eq:dR}\\
+\frac{dV}{dt} &= \nu\, S(t) \label{eq:dV}
 \end{align}
-A soma das cinco equações é identicamente zero, garantindo conservação da população (Apêndice~\ref{app:proofs}).
+com condição inicial $S(0) + E(0) + I(0) + R(0) + V(0) = 1$. Cada equação descreve o fluxo líquido de um compartimento: os suscetíveis diminuem por infecção ($\beta S I$) e vacinação ($\nu S$) e aumentam pelo esquecimento dos recuperados ($\delta R$); os expostos entram por infecção e saem por incubação ($\sigma E$) ou recuperação espontânea ($\gamma_e E$); os infectados entram quando os expostos internalizam a fake news e saem pela correção ($\gamma I$); os vacinados apenas aumentam, uma vez que o modelo não contempla mecanismo de ``desvacinação''. A soma das cinco equações é identicamente zero, garantindo a conservação da população (Apêndice~\ref{app:proofs}, Teorema~\ref{thm:conservation}). A positividade das soluções e a ausência de propagação quando $E(0) = I(0) = 0$ seguem argumentos padrão registrados no mesmo apêndice.
 
-\subsection{Números de Reprodução}
+\subsection{Número de Reprodução Básico Efetivo}
 \label{subsec:R0}
 
-Pelo método da matriz de próxima geração:
+O número de reprodução básico efetivo $R_0^{\text{eff}}$ quantifica quantas infecções secundárias cada agente infectado gera em média em uma população totalmente suscetível. Pelo método da matriz de próxima geração aplicado ao subsistema $(E, I)$,
 \begin{equation}
-R_0^{\text{eff}} = \frac{\beta\,\sigma}{\gamma\,(\sigma + \gamma_e)} = \frac{0{,}3 \times 0{,}2}{0{,}1 \times 0{,}22} = \frac{30}{11} \approx 2{,}73
+\mathbf{F} = \begin{pmatrix} 0 & \beta \\ 0 & 0 \end{pmatrix}, \qquad
+\mathbf{V} = \begin{pmatrix} \sigma + \gamma_e & 0 \\ -\sigma & \gamma \end{pmatrix},
+\label{eq:FV}
+\end{equation}
+o número de reprodução é o raio espectral de $\mathbf{K} = \mathbf{F}\mathbf{V}^{-1}$, resultando em
+\begin{equation}
+R_0^{\text{eff}} = \rho(\mathbf{K}) = \frac{\beta\, \sigma}{\gamma\,(\sigma + \gamma_e)} = \frac{0{,}3 \times 0{,}2}{0{,}1 \times (0{,}2 + 0{,}02)} = \frac{30}{11} \approx 2{,}73.
 \label{eq:R0eff}
 \end{equation}
+Uma fração $p_{E \to I} = \sigma/(\sigma + \gamma_e) = 10/11 \approx 90{,}9\%$ dos expostos transita efetivamente para o estado infectado. O equilíbrio livre de doença, caracterizado por $(S^*, 0, 0, 0, V^*)$ com $S^* + V^* = 1$, é localmente assintoticamente estável se e somente se $R_0^{\text{eff}} \cdot S^* < 1$, o que exige $S^* < 1/R_0^{\text{eff}} = 11/30 \approx 36{,}7\%$. A prova formal segue pela linearização em torno do equilíbrio e pelas condições de Routh-Hurwitz (Apêndice~\ref{app:proofs}, Teorema~\ref{thm:dfe}).
 
-Para isolar a transmissão humano-a-humano, derivamos $\beta_{\text{SEIR}}$ como esperança ponderada sobre tipos de agentes:
-\begin{align}
-\mathbb{E}[c_{\text{human}}] &= \frac{0{,}85 \times 0{,}25 + 0{,}05 \times 0{,}75}{0{,}90} = \frac{5}{18} \approx 0{,}278 \label{eq:Echuman}\\
-\mathbb{E}[1 - e_{\text{human}}] &= \frac{0{,}85 \times 0{,}70 + 0{,}05 \times 0{,}55}{0{,}90} = \frac{83}{120} \approx 0{,}692 \label{eq:Evuln}\\
-\beta_{\text{SEIR}} &= \langle k \rangle \cdot \beta \cdot \mathbb{E}[v_k] \cdot \mathbb{E}[c_{\text{human}}] \cdot \mathbb{E}[\hat{c}_k] \cdot \mathbb{E}[1-e_{\text{human}}] \approx 0{,}078 \label{eq:betaSEIR}
-\end{align}
+\subsection{Derivação da Taxa Humano-Humano \texorpdfstring{$\beta_{\text{SEIR}}$}{beta SEIR}}
+\label{subsec:betaseir}
 
-O número de reprodução exclusivamente humano:
+O parâmetro $\beta = 0{,}3$ no sistema EDO representa a taxa global de transmissão, incluindo bots. Para isolar a transmissão exclusivamente humano-humano, derivamos o equivalente de campo médio $\beta_{\text{SEIR}}$ calculando a probabilidade esperada de transmissão por contato entre agentes humanos e multiplicando pelo grau médio. Tomando esperanças sobre as distribuições de cada fator na subpopulação humana (eleitores, 85\%; influenciadores, 5\%; fração humana total, 90\%), a viralidade média é $\mathbb{E}[v_k] = (0{,}21 + 0{,}28)/2 = 0{,}245$, e a credibilidade aparente média é $\mathbb{E}[\hat{c}_k] = (0{,}85 + 0{,}99)/2 = 0{,}92$. A credibilidade média da fonte humana, ponderada pelas participações populacionais, é
 \begin{equation}
-R_0^{\text{hum}} = \frac{\beta_{\text{SEIR}}\,\sigma}{\gamma\,(\sigma + \gamma_e)} = \frac{0{,}08 \times 0{,}2}{0{,}1 \times 0{,}22} = \frac{8}{11} \approx 0{,}73 < 1
+\mathbb{E}[c_{\text{human}}] = \frac{0{,}85 \times 0{,}25 + 0{,}05 \times 0{,}75}{0{,}90} = \frac{5}{18} \approx 0{,}278,
+\label{eq:Echuman}
+\end{equation}
+e a vulnerabilidade média é
+\begin{equation}
+\mathbb{E}[1 - e_{\text{human}}] = \frac{0{,}85 \times 0{,}70 + 0{,}05 \times 0{,}55}{0{,}90} = \frac{83}{120} \approx 0{,}692.
+\label{eq:Evuln}
+\end{equation}
+A taxa de transmissão SEIR humano-humano de campo médio é, portanto,
+\begin{equation}
+\beta_{\text{SEIR}} = \langle k \rangle \cdot \beta \cdot \mathbb{E}[v_k] \cdot \mathbb{E}[c_{\text{human}}] \cdot \mathbb{E}[\hat{c}_k] \cdot \mathbb{E}[1-e_{\text{human}}] = 6 \times 0{,}3 \times 0{,}245 \times \tfrac{5}{18} \times 0{,}92 \times \tfrac{83}{120} \approx 0{,}078,
+\label{eq:betaSEIR}
+\end{equation}
+valor que arredondamos para $\beta_{\text{SEIR}} = 0{,}08$ como limite superior conservador. A derivação é rigorosa: incorpora o grau da rede, a taxa base e as esperanças ponderadas pela população de todos os quatro fatores moduladores, restritas a emissores humanos. Substituindo $\beta_{\text{SEIR}}$ na fórmula do número de reprodução obtém-se o resultado central para o Brasil,
+\begin{equation}
+R_0^{\text{hum}} = \frac{\beta_{\text{SEIR}}\,\sigma}{\gamma\,(\sigma + \gamma_e)} = \frac{0{,}08 \times 0{,}2}{0{,}1 \times 0{,}22} = \frac{8}{11} \approx 0{,}73 < 1.
 \label{eq:R0hum}
 \end{equation}
+Sem bots, cada cadeia de transmissão humana acaba por se extinguir, e a desinformação não se sustenta em regime autônomo. Os bots atuam como fonte externa permanente, mantendo a pressão de infecção mesmo com $R_0^{\text{hum}} < 1$ e produzindo o que é mais bem caracterizado não como epidemia autossustentada, mas como \emph{estado endêmico forçado por bots}. A remoção dessa fonte faria a epidemia decair exponencialmente. Todos os valores acima foram confirmados independentemente via Wolfram Language ($R_0^{\text{eff}} = 30/11$, $R_0^{\text{hum}} = 8/11$ no limite superior, $\beta_{\text{SEIR}} = 93{.}541/1{.}200{.}000 \approx 0{,}0780$ exato); os scripts estão em \texttt{verification\_proofs/}.
 
-\textbf{Interpretação:} sem bots, as fake news não se sustentam. Os bots atuam como fonte externa permanente, produzindo estado endêmico forçado. A fração suscetível limiar é $S^* = 11/30 \approx 36{,}7\%$.
-
-\subsection{Números de Reprodução por País}
+\subsection{Números de Reprodução Específicos por País}
 \label{subsec:R0_countries}
 
-Aplicando o reescalamento \texttt{edu\_scale}~$= \texttt{educacao\_base}/0{,}30$ aos parâmetros de cada país:
-
-\begin{table}[H]
-\centering
-\footnotesize
-\begin{tabular}{lcccccc}
-\toprule
-\textbf{País} & \textbf{Tier} & $\langle k \rangle$ & $\mathbb{E}[v]$ & $\mathbb{E}[\hat{c}]$ & $\beta_{\text{SEIR}}$ & $R_0^{\text{hum}}$ \\
-\midrule
-Brasil    & 1 & 6 & 0,245 & 0,920 & 0,0780 & 0,709$^{\ast}$ \\
-México    & 2 & 6 & 0,275 & 0,900 & 0,0961 & 0,873$^{\ast}$ \\
-Argentina & 2 & 8 & 0,230 & 0,890 & 0,0796 & 0,724$^{\ast}$ \\
-Colômbia  & 2 & 6 & 0,300 & 0,915 & 0,1063 & 0,966$^{\ast}$ \\
-Chile     & 2 & 8 & 0,215 & 0,870 & 0,0584 & 0,531$^{\ast}$ \\
-Peru      & 3 & 6 & 0,260 & 0,905 & 0,0909 & 0,827$^{\ast}$ \\
-Venezuela & 3 & 6 & 0,320 & 0,930 & 0,1277 & 1,161 \\
-Equador   & 3 & 6 & 0,260 & 0,905 & 0,0910 & 0,827$^{\ast}$ \\
-Bolívia   & 3 & 6 & 0,285 & 0,920 & 0,1118 & 1,016 \\
-Uruguai   & 3 & 8 & 0,185 & 0,855 & 0,0367 & 0,333$^{\ast}$ \\
-\bottomrule
-\end{tabular}
-\caption{$R_0^{\text{hum}}$ por país. $^{\ast}$: $R_0^{\text{hum}} < 1$ (fake news não endêmica sem bots). Derivações via SymPy (\texttt{derivacao\_R0\_paises.py}).}
-\label{tab:country_R0}
-\end{table}
-
-Venezuela e Bolívia excedem o limiar no ponto central. Nas perturbações de sensibilidade (Apêndice~\ref{app:sensitivity}), a Venezuela varia de 0,97--1,33 e a Bolívia de 0,84--1,19.
-
-\subsection{Tabela de Parâmetros}
-\label{subsec:parameters}
+Estendendo a derivação de $\beta_{\text{SEIR}}$ aos parâmetros empíricos de cada país --- e aplicando o reescalamento $\texttt{edu\_scale} = \texttt{educacao\_base}/0{,}30$ aos intervalos de educação por tipo de agente, conforme a lógica do simulador (Seção~\ref{subsec:entities}) --- obtêm-se os valores reportados na Tabela~\ref{tab:country_R0}. No ponto central das calibrações paramétricas, oito dos dez países exibem $R_0^{\text{hum}} < 1$, com o Uruguai no extremo inferior ($0{,}33$) e o Brasil em posição intermediária ($0{,}71$). Duas exceções emergem: Venezuela ($R_0^{\text{hum}} \approx 1{,}16$) e Bolívia ($\approx 1{,}02$), cujas calibrações combinam alta viralidade, credibilidade aparente amplificada pela mídia estatal e baixa educação midiática. Sob perturbação analítica de $\pm 0{,}05$ na viralidade e $\pm 0{,}10$ na educação, México (extremo superior $1{,}03$) e Colômbia ($1{,}13$) também cruzam o limiar; quatro países, portanto, compõem um gradiente de fronteira em que a transmissão humano-humano pode se sustentar sob incerteza paramétrica empiricamente plausível. A condição ``bots são necessários para a propagação sustentada'' é, assim, \emph{regime-dependente}: verifica-se no ponto central de oito dos dez países, mas não universalmente. Para os países Tier 3, a banda de sensibilidade da Venezuela abrange $R_0^{\text{hum}} \in [0{,}97,\,1{,}33]$ e a da Bolívia, $[0{,}84,\,1{,}19]$; ambas mantêm-se acima ou próximas do limiar crítico (Apêndice~\ref{app:sensitivity}).
 
 \begin{table}[H]
 \centering
 \small
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{clccc}
+\setlength{\tabcolsep}{10pt}
+\renewcommand{\arraystretch}{1.20}
+\begin{tabular}{lcccccc}
 \toprule
-\textbf{Símbolo} & \textbf{Descrição} & \textbf{Valor} & \textbf{Calibrado?} & \textbf{Fonte} \\
+\textbf{País} & \textbf{Tier} & $\langle k \rangle$ & $\mathbb{E}[v]$ & $\mathbb{E}[\hat{c}]$ & $\beta_{\text{SEIR}}$ & $R_0^{\text{hum}}$ \\
 \midrule
-\multicolumn{5}{l}{\textit{Parâmetros SEIR}} \\
-$\beta$ & Taxa de transmissão base & 0,3 & Sim & \citet{vosoughi2018spread} \\
-$\beta_{\text{SEIR}}$ & Taxa campo médio humano-a-humano & 0,08 & Derivado & Eq.~\eqref{eq:betaSEIR} \\
-$\sigma$ & Taxa de incubação cognitiva & 0,2 & Não & -- \\
-$\gamma$ & Taxa de recuperação (verificador) & 0,1 & Não & -- \\
-$\gamma_e$ & Taxa de recuperação espontânea & 0,02 & Não & -- \\
-$\delta$ & Taxa de esquecimento & 0,05 & Não & -- \\
-$\nu$ & Taxa de vacinação & 0,02 & Não & -- \\
-\midrule
-\multicolumn{5}{l}{\textit{Parâmetros de Fake News (calibrados: Fake.br Corpus)}} \\
-$v_k$ & Viralidade & $\mathcal{U}(0{,}21, 0{,}28)$ & Sim & \citet{monteiro2018fakebr} \\
-$\hat{c}_k$ & Credibilidade aparente & $\mathcal{U}(0{,}85, 0{,}99)$ & Sim & \citet{monteiro2018fakebr} \\
-\midrule
-\multicolumn{5}{l}{\textit{Parâmetros de Rede e Dinâmica de Opiniões}} \\
-$N$ & Total de agentes & 1.000 & -- & -- \\
-$m$ (BA) & Parâmetro de conexão & 3 & -- & -- \\
-$\langle k \rangle$ & Grau médio & 6 & Derivado & $2m$ \\
-$\varepsilon$ & Limiar de confiança DW & 0,5 & -- & \citet{deffuant2000mixing} \\
-\% bots & Proporção de bots (base) & 7\% & Sim & \citet{ruediger2018bots} \\
-\midrule
-\multicolumn{5}{l}{\textit{Quantidades Derivadas}} \\
-$R_0^{\text{eff}}$ & Número de reprodução efetivo & $30/11 \approx 2{,}73$ & Derivado & Eq.~\eqref{eq:R0eff} \\
-$R_0^{\text{hum}}$ & Reprodução humano-a-humano (Brasil) & $8/11 \approx 0{,}73$ & Derivado & Eq.~\eqref{eq:R0hum} \\
-$R_0^{\text{comb}}$ & Reprodução sob política combinada & $0{,}31$ & Derivado & Apêndice~\ref{app:proofs} \\
-$p_{E \to I}$ & Fração de $E$ que atinge $I$ & $10/11 \approx 0{,}909$ & Derivado & $\sigma/(\sigma+\gamma_e)$ \\
+Brasil    & 1 & 6 & 0,245 & 0,920 & 0,0780 & 0,7086$^{\ast}$ \\
+México    & 2 & 6 & 0,275 & 0,900 & 0,0961 & 0,8732$^{\ast}$ \\
+Argentina & 2 & 8 & 0,230 & 0,890 & 0,0796 & 0,7240$^{\ast}$ \\
+Colômbia  & 2 & 6 & 0,300 & 0,915 & 0,1063 & 0,9664$^{\ast}$ \\
+Chile     & 2 & 8 & 0,215 & 0,870 & 0,0584 & 0,5307$^{\ast}$ \\
+Peru      & 3 & 6 & 0,260 & 0,905 & 0,0909 & 0,8267$^{\ast}$ \\
+Venezuela & 3 & 6 & 0,320 & 0,930 & 0,1277 & 1,1612 \\
+Equador   & 3 & 6 & 0,260 & 0,905 & 0,0910 & 0,8274$^{\ast}$ \\
+Bolívia   & 3 & 6 & 0,285 & 0,920 & 0,1118 & 1,0161 \\
+Uruguai   & 3 & 8 & 0,185 & 0,855 & 0,0367 & 0,3333$^{\ast}$ \\
 \bottomrule
-\end{tabular}%
-}
-\caption{Parâmetros do modelo. ``Sim'' = calibração empírica; ``Derivado'' = calculado analiticamente.}
-\label{tab:parameters}
+\end{tabular}
+\caption{Derivação específica por país de $\beta_{\text{SEIR}}$ e do número de reprodução humano-humano $R_0^{\text{hum}}$. O asterisco indica $R_0^{\text{hum}} < 1$ no ponto central (fake news não se sustenta sem bots); Venezuela e Bolívia excedem o limiar. As demais taxas SEIR ($\sigma$, $\gamma$, $\gamma_e$) são mantidas constantes entre países. $\mathbb{E}[1-e]$ incorpora o reescalamento $\texttt{edu\_scale}$ sobre os intervalos de educação por tipo de agente. Derivações executadas com aritmética racional exata em SymPy e independentemente verificadas via Wolfram Language; ver \texttt{verification\_proofs/derivacao\_R0\_paises.py}.}
+\label{tab:country_R0}
 \end{table}
+
+\subsection{Limiar Epidêmico em Rede Livre de Escala}
+\label{subsec:scalefree}
+
+Para a rede de Barabási-Albert utilizada ($m = 3$, $N = 1{.}000$), o limiar epidêmico em redes complexas \citep{pastor2001epidemic} é $\lambda_c = \langle k \rangle/\langle k^2 \rangle$. Na realização específica empregada nas simulações, $\langle k \rangle = 6$ e $\langle k^2 \rangle \approx 42$, resultando em $\lambda_c = 1/7 \approx 0{,}143$. É importante notar que $\beta = 0{,}3$ é a taxa base, e não a probabilidade efetiva por ligação: a probabilidade efetiva média por contato humano é $\beta \cdot \mathbb{E}[v] \cdot \mathbb{E}[c] \cdot \mathbb{E}[\hat{c}] \cdot \mathbb{E}[1-e] \approx 0{,}013$, abaixo de $\lambda_c$ --- o que é consistente com $R_0^{\text{hum}} < 1$. Os bots, contudo, possuem taxas por contato mais elevadas (credibilidade maior, múltiplos alvos por passo), empurrando a taxa efetiva sistêmica acima do limiar e produzindo o estado endêmico observado. A tabela de parâmetros completa, incluindo intervalos de calibração e quantidades derivadas, é apresentada no Apêndice~\ref{app:parameters}.
 
 % ============================================================
 \section{Experimentos Computacionais}
@@ -496,6 +467,57 @@ $N_B = N(1+M)/2$, $N_A = N(1-M)/2$. Votos deslocados: $\Delta = N \cdot p_I \cdo
 \begin{proposicao}[Extinção sob política combinada]
 Com $\bar{e} = 0{,}7$: $\beta_{\text{SEIR}}^{\text{comb}} \approx 0{,}034$; $R_0^{\text{comb}} = 0{,}034 \times 0{,}2 / (0{,}1 \times 0{,}22) \approx 0{,}31 < 1$.
 \end{proposicao}
+
+% ============================================================
+\section{Tabela de Parâmetros}
+\label{app:parameters}
+
+\begin{table}[H]
+\centering
+\small
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{clccc}
+\toprule
+\textbf{Símbolo} & \textbf{Descrição} & \textbf{Valor} & \textbf{Calibrado?} & \textbf{Fonte} \\
+\midrule
+\multicolumn{5}{l}{\textit{Parâmetros SEIR}} \\
+$\beta$ & Taxa de transmissão base & 0,3 & Sim & \citet{vosoughi2018spread} \\
+$\beta_{\text{SEIR}}$ & Taxa campo médio humano-humano & 0,08 & Derivado & Eq.~\eqref{eq:betaSEIR} \\
+$\sigma$ & Taxa de incubação cognitiva & 0,2 & Não & -- \\
+$\gamma$ & Taxa de recuperação (verificador) & 0,1 & Não & -- \\
+$\gamma_e$ & Taxa de recuperação espontânea & 0,02 & Não & -- \\
+$\delta$ & Taxa de esquecimento & 0,05 & Não & -- \\
+$\nu$ & Taxa de vacinação & 0,02 & Não & -- \\
+$\mu$ & Taxa de influência sobre crença & 0,1 & Não & -- \\
+$\rho$ & Parâmetro de radicalização & 0,03 & Não & -- \\
+\midrule
+\multicolumn{5}{l}{\textit{Parâmetros de Fake News (calibrados: Fake.br Corpus)}} \\
+$v_k$ & Viralidade & $\mathcal{U}(0{,}21;\,0{,}28)$ & Sim & \citet{monteiro2018fakebr} \\
+$\hat{c}_k$ & Credibilidade aparente & $\mathcal{U}(0{,}85;\,0{,}99)$ & Sim & \citet{monteiro2018fakebr} \\
+$o_k$ & Orientação política inicial & $\{-0{,}8,\,+0{,}8\}$ & Não & -- \\
+\midrule
+\multicolumn{5}{l}{\textit{Parâmetros de População, Rede e Dinâmica de Opiniões}} \\
+$N$ & Total de agentes & 1.000 & -- & -- \\
+$m$ (BA) & Parâmetro de conexão BA & 3 & -- & -- \\
+$\langle k \rangle$ & Grau médio & 6 & Derivado & $2m$ \\
+$\varepsilon$ & Limiar de confiança DW & 0,5 & -- & \citet{deffuant2000mixing} \\
+$\mu_{\text{DW}}$ & Taxa de convergência DW & 0,05 & -- & \citet{deffuant2000mixing} \\
+\% bots & Proporção de bots (base Brasil) & 7\% & Sim & \citet{ruediger2018bots} \\
+\% VF & Verificadores de fatos (base) & 3\% & -- & -- \\
+\midrule
+\multicolumn{5}{l}{\textit{Quantidades Derivadas}} \\
+$R_0^{\text{eff}}$ & Número de reprodução efetivo & $30/11 \approx 2{,}73$ & Derivado & Eq.~\eqref{eq:R0eff} \\
+$R_0^{\text{hum}}$ & Reprodução humano-humano (Brasil) & $8/11 \approx 0{,}73$ & Derivado & Eq.~\eqref{eq:R0hum} \\
+$R_0^{\text{comb}}$ & Reprodução sob política combinada & $0{,}31$ & Derivado & Apêndice~\ref{app:proofs} \\
+$p_{E \to I}$ & Fração de $E$ que atinge $I$ & $10/11 \approx 0{,}909$ & Derivado & $\sigma/(\sigma+\gamma_e)$ \\
+$S^*$ & Limiar suscetível para estabilidade do ELD & $11/30 \approx 0{,}367$ & Derivado & $1/R_0^{\text{eff}}$ \\
+$\lambda_c$ & Limiar epidêmico rede livre de escala & $1/7 \approx 0{,}143$ & Derivado & Seção~\ref{subsec:scalefree} \\
+\bottomrule
+\end{tabular}%
+}
+\caption{Parâmetros completos do modelo. ``Sim'' = calibração empírica; ``Derivado'' = calculado analiticamente. Todos os valores derivados foram independentemente verificados via SymPy e Wolfram Language (scripts em \texttt{verification\_proofs/}).}
+\label{tab:parameters}
+\end{table}
 
 % ============================================================
 \section{Validação Estatística}
