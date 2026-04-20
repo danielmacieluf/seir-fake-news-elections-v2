@@ -270,15 +270,18 @@ Uruguai   & 3 & 8 & 0,185 & 0,855 & 0,0367 & 0,3333$^{\ast}$ \\
 Para a rede de Barabási-Albert utilizada ($m = 3$, $N = 1{.}000$), o limiar epidêmico em redes complexas \citep{pastor2001epidemic} é $\lambda_c = \langle k \rangle/\langle k^2 \rangle$. Na realização específica empregada nas simulações, $\langle k \rangle = 6$ e $\langle k^2 \rangle \approx 42$, resultando em $\lambda_c = 1/7 \approx 0{,}143$. É importante notar que $\beta = 0{,}3$ é a taxa base, e não a probabilidade efetiva por ligação: a probabilidade efetiva média por contato humano é $\beta \cdot \mathbb{E}[v] \cdot \mathbb{E}[c] \cdot \mathbb{E}[\hat{c}] \cdot \mathbb{E}[1-e] \approx 0{,}013$, abaixo de $\lambda_c$ --- o que é consistente com $R_0^{\text{hum}} < 1$. Os bots, contudo, possuem taxas por contato mais elevadas (credibilidade maior, múltiplos alvos por passo), empurrando a taxa efetiva sistêmica acima do limiar e produzindo o estado endêmico observado. A tabela de parâmetros completa, incluindo intervalos de calibração e quantidades derivadas, é apresentada no Apêndice~\ref{app:parameters}.
 
 % ============================================================
-\section{Experimentos Computacionais}
+\section{Experimentos e Parametrização}
 \label{sec:experiments}
 
-Seis cenários avaliam o impacto de intervenções isoladas e combinadas (Tabela~\ref{tab:scenarios}). O protocolo usa 30 replicações por cenário (sementes 42--71), 100 passos de tempo por simulação, totalizando 180 simulações para o Brasil e 1.800 na análise cross-country (10 países $\times$ 6 cenários $\times$ 30 replicações).
+\subsection{Desenho dos Cenários}
+\label{subsec:scenarios}
+
+Seis cenários de política pública foram desenhados para avaliar o impacto de intervenções isoladas e combinadas sobre a propagação de desinformação (Tabela~\ref{tab:scenarios}). O cenário base representa a ausência de intervenção, com a prevalência de bots calibrada para 7\% a partir de \citet{ruediger2018bots}. O cenário de ataque de bots simula uma ofensiva coordenada que dobra a população de bots para 15\%, refletindo estimativas de atividade durante campanhas críticas \citep{bessi2016social, stella2018bots}. Três cenários intermediários testam intervenções isoladas: a expansão da infraestrutura de verificação de fatos de 3\% para 10\%, a elevação da educação midiática de 0,3 para 0,7 --- correspondendo a um programa educacional em larga escala no espírito de \citet{huang2024media} --- e a regulação de bots via remoção periódica a cada dez passos. O cenário combinado aplica as três intervenções simultaneamente, testando se seus efeitos são meramente aditivos ou se produzem sinergias.
 
 \begin{table}[H]
 \centering
-\footnotesize
-\setlength{\tabcolsep}{4pt}
+\small
+\setlength{\tabcolsep}{5pt}
 \begin{tabular}{lccccl}
 \toprule
 \textbf{Cenário} & \textbf{Bots} & \textbf{VF} & \textbf{Educ.} & \textbf{Remoção} & \textbf{Descrição} \\
@@ -291,58 +294,84 @@ Regulação de bots  & 7\%  & 3\%  & 0,3 & Sim & Remoção periódica \\
 \textbf{Combinado} & 7\%  & 10\% & 0,7 & Sim & Pacote completo \\
 \bottomrule
 \end{tabular}
-\caption{Seis cenários de política pública. VF = verificadores de fatos; Remoção = remoção periódica a cada 10 passos.}
+\caption{Seis cenários de política pública. VF = verificadores de fatos; Remoção = remoção periódica de bots a cada 10 passos.}
 \label{tab:scenarios}
 \end{table}
 
-% ============================================================
-\section{Parametrização Cross-Country}
-\label{sec:crosscountry_params}
+\subsection{Protocolo de Simulação}
+\label{subsec:protocol}
 
-A análise estende o modelo a 10 países da América Latina ($\approx$88\% da população regional). A disponibilidade de dados varia: Tier~1 (Brasil, Fake.br Corpus, calibração direta); Tier~2 (México, Argentina, Colômbia, Chile, dados proxy robustos de consórcios IFCN e estudos de bots revisados por pares); Tier~3 (Peru, Venezuela, Equador, Bolívia, Uruguai, estimação indireta via metanálises regionais, sensibilidade obrigatória). Para os países Tier~3, o ranking qualitativo de vulnerabilidade é robusto a perturbações de $\pm 3$pp em bots, $\pm 0{,}10$ em educação e $\pm 0{,}05$ em viralidade (Apêndice~\ref{app:sensitivity}). Os parâmetros específicos estão na Tabela~\ref{tab:countryparams} (Apêndice~\ref{app:countryparams}).
+Cada cenário foi simulado trinta vezes com sementes aleatórias distintas (42 a 71), totalizando $30 \times 6 = 180$ simulações para o Brasil. Cada simulação executa cem passos de tempo correspondentes aos cem dias de campanha, com $N = 1{.}000$ agentes ativados em ordem aleatória uniforme a cada passo. Três itens iniciais de notícias falsas são semeados em $t=0$ com orientações políticas opostas. A coleta de dados ocorre ao final de cada passo e inclui as proporções dos compartimentos SEIR, média e desvio-padrão das crenças, distribuição de intenção de voto, e o número de reprodução efetivo instantâneo. Estatísticas resumidas --- médias, intervalos de confiança a 95\% via distribuição $t$ com 29 graus de liberdade, testes não paramétricos de Mann-Whitney $U$ com correção de Bonferroni --- são computadas ao longo das trinta replicações para cada cenário. A plataforma de simulação é a Mesa 3.5 sobre Python 3.12, com NetworkX, NumPy, Pandas, SciPy e SymPy como dependências adicionais; o tamanho populacional $N = 1{.}000$ foi escolhido para equilibrar a cobertura da grade $32 \times 32$, a compatibilidade com redes de Barabási-Albert de baixa conectividade e a tratabilidade computacional ao longo das 1.800 simulações da extensão cross-country. O código-fonte, os arquivos de configuração específicos por país, os dados de saída das 1.800 simulações e os scripts de verificação matemática independente (SymPy e Wolfram Language) estão arquivados em repositório persistente com DOI atribuído no momento da submissão.
 
-Os parâmetros-alvo das políticas são mantidos constantes entre países (verificação de fatos: 10\%; educação: 0,7; remoção de bots a cada 10 passos), isolando o efeito das condições nacionais. A campanha é fixada em 100 dias para comparabilidade.
+\subsection{Parametrização Comparativa entre Países}
+\label{subsec:crosscountry_params}
+
+A análise estende o arcabouço a dez países latino-americanos, aproximadamente 88\% da população regional excluído o Caribe, com o objetivo de avaliar como as condições do cenário base moderam a eficácia das intervenções em diferentes contextos nacionais. A seleção dos países foi orientada por quatro critérios: cobertura regional de população e PIB, disponibilidade de dados empíricos sobre desinformação e atividade de bots, diversidade de ecossistemas midiáticos (dominância do WhatsApp, do Twitter ou uso misto) e diversidade de contextos eleitorais (de margens mínimas a margens confortáveis). A disponibilidade de dados, contudo, varia substancialmente, o que motiva o sistema explícito de três níveis que usamos. O Tier~1 abrange apenas o Brasil, cujo Fake.br Corpus \citep{monteiro2018fakebr} fornece sete mil e duzentas notícias rotuladas, permitindo calibração direta dos parâmetros de viralidade e credibilidade aparente, com estimativas de prevalência de bots derivadas de \citet{ruediger2018bots} e dinâmicas do WhatsApp de \citet{machado2019whatsapp}. O Tier~2 reúne México, Argentina, Colômbia e Chile, países para os quais existem dados proxy robustos: bancos de dados de verificação de fatos certificados pelo IFCN (Verificado.mx, Chequeado, ColombiaCheck, FastCheck CL), estudos peer-reviewed de bots e trolls \citep{calvo2020fake, signalab2018}, e análises regionais do ecossistema midiático \citep{trere2020hybrid, salaverria2020}. O Tier~3 engloba Peru, Venezuela, Equador, Bolívia e Uruguai, para os quais a literatura científica doméstica sobre desinformação é escassa e a estimação paramétrica baseia-se em metanálises regionais \citep{bradshaw2019global, lupu2020socialmedia, waisbord2018post}, relatórios da IFCN e monitoramento de ONGs; para esses países, a análise de sensibilidade é obrigatória. O ranking qualitativo de vulnerabilidade é robusto a perturbações de $\pm 3$pp em bots, $\pm 0{,}10$ em educação midiática e $\pm 0{,}05$ em viralidade (Apêndice~\ref{app:sensitivity}).\footnote{Para os países Tier~3, as estimativas pontuais devem ser lidas como estimativas centrais plausíveis que aguardam validação futura com dados primários específicos por país.} A Venezuela apresenta desafios particulares: seu ecossistema midiático controlado pelo Estado eleva a credibilidade efetiva dos bots alinhados ao governo acima da norma regional; o Uruguai, em contraste, foi incluído ex-ante como caso de controle natural --- se o modelo prevê corretamente baixa infecção em condições de alta educação midiática e infraestrutura robusta de verificação de fatos, isso valida sua sensibilidade paramétrica. Os parâmetros específicos por país estão consolidados na Tabela~\ref{tab:countryparams} (Apêndice~\ref{app:countryparams}). Para garantir comparabilidade, os parâmetros-alvo das políticas são mantidos constantes entre países (verificação de fatos em 10\%; educação em 0,7; remoção de bots a cada dez passos), isolando o efeito das condições nacionais. A campanha é fixada em cem dias para todos os países, escolha conservadora para aqueles com campanhas efetivamente mais curtas e neutra para os demais. A análise completa compreende $10 \times 6 \times 30 = 1{.}800$ simulações.
 
 % ============================================================
 \section{Resultados}
 \label{sec:results}
 
-\subsection{Resultados para o Brasil}
+Os resultados organizam-se em três camadas: os desfechos brasileiros calibrados diretamente, o impacto eleitoral via margem crítica de reversão, e a comparação sistemática entre os dez países latino-americanos. A comparação complementar entre o sistema de campo médio e o modelo baseado em agentes é integrada ao final da seção.
 
-A Figura~\ref{fig:hero} apresenta as curvas SEIR nos quatro cenários-chave. No cenário base, a infecção alcança $12{,}4\% \pm 1{,}4\%$ no dia da eleição. A Tabela~\ref{tab:interventions} resume a eficácia de cada intervenção.
+\subsection{Eficácia das Intervenções no Brasil}
+\label{subsec:results_brasil}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\textwidth]{figures/fig_hero_comparacao.png}
-    \caption{Taxa de infecção nos quatro cenários-chave (Brasil). Médias sobre 30 replicações; bandas = $\pm 1$ DP.}
-    \label{fig:hero}
-\end{figure}
+No cenário base brasileiro, a taxa de infecção humana alcança $12{,}4\% \pm 1{,}4\%$ no dia da eleição, e o ataque coordenado de bots quase dobra esse valor para $22{,}3\% \pm 1{,}5\%$. As três intervenções isoladas produzem reduções heterogêneas: a educação midiática é individualmente a mais eficaz ($-63\%$), seguida pela verificação de fatos ($-51\%$) e pela regulação de bots ($-38\%$); todas as diferenças pareadas são estatisticamente significativas a $p < 0{,}001$ (Mann-Whitney $U$ com correção de Bonferroni para quinze comparações, $\alpha_{\text{adj}} = 0{,}0033$; ver Apêndice~\ref{app:statistics}). Combinadas, as três intervenções reduzem a infecção a $1{,}2\% \pm 0{,}3\%$, uma redução de 90,3\% em relação ao cenário base (Tabela~\ref{tab:interventions}). Essa redução supera o valor de referência sob independência multiplicativa, $1 - (1-0{,}51)(1-0{,}63)(1-0{,}38) \approx 88{,}8\%$, indicando sinergias moderadas: as intervenções atacam elos distintos da cadeia de propagação --- a educação midiática vacina a população ($S \to V$), os verificadores curam os já infectados ($I \to R$) e a regulação elimina a fonte de desinformação. Formalmente, a derivação do Apêndice~\ref{app:proofs} mostra que sob $\bar{e} = 0{,}7$ obtém-se $R_0^{\text{comb}} = 0{,}31 < 1$, garantindo a extinção analítica da epidemia no canal humano-humano.
 
 \begin{table}[H]
 \centering
+\small
+\setlength{\tabcolsep}{8pt}
+\renewcommand{\arraystretch}{1.15}
 \begin{tabular}{lccl}
 \toprule
 \textbf{Intervenção} & \textbf{Infectados (\%)} & \textbf{Redução} & \textbf{Mecanismo} \\
 \midrule
-Cenário base         & $12{,}4 \pm 1{,}4$ & ---     & --- \\
-Ataque de bots (15\%)& $22{,}3 \pm 1{,}5$ & $+80\%$ & Amplificação \\
-Verific.\ de fatos   & $6{,}1 \pm 1{,}0$  & $-51\%$ & $I \to R$ \\
-Educação midiática   & $4{,}6 \pm 0{,}7$  & $-63\%$ & $S \to V$ \\
-Regulação de bots    & $7{,}7 \pm 1{,}0$  & $-38\%$ & Remove fonte \\
-\textbf{Combinado}   & $\mathbf{1{,}2 \pm 0{,}3}$ & $\mathbf{-90{,}3\%}$ & Sinergias \\
+Cenário base           & $12{,}4 \pm 1{,}4$ & ---     & --- \\
+Ataque de bots (15\%)  & $22{,}3 \pm 1{,}5$ & $+80\%$ & Amplificação da fonte \\
+Verificadores de fatos & $6{,}1 \pm 1{,}0$  & $-51\%$ & $I \to R$ (cura) \\
+Educação midiática     & $4{,}6 \pm 0{,}7$  & $-63\%$ & $S \to V$ (vacinação) \\
+Regulação de bots      & $7{,}7 \pm 1{,}0$  & $-38\%$ & Remove fonte \\
+\textbf{Combinado}     & $\mathbf{1{,}2 \pm 0{,}3}$ & $\mathbf{-90{,}3\%}$ & Sinergia das três frentes \\
 \bottomrule
 \end{tabular}
-\caption{Eficácia das intervenções no dia da eleição (média $\pm$ DP, $n=30$, Brasil).}
+\caption{Eficácia das intervenções no dia da eleição, cenário brasileiro (média $\pm$ desvio-padrão sobre 30 replicações).}
 \label{tab:interventions}
 \end{table}
 
-A política combinada produz redução de 90,3\%. Sob independência multiplicativa, a redução esperada seria $\approx 88{,}8\%$; o valor observado (90,3\%) indica sinergias moderadas. Formalmente, $R_0^{\text{comb}} = 0{,}31 < 1$ (Apêndice~\ref{app:proofs}).
+O número de reprodução efetivo instantâneo do modelo baseado em agentes, medido como razão entre compartilhamentos cumulativos bem-sucedidos e agentes infectados ativos, cresce ao longo do cenário base à medida que os bots acumulam propagações (Figura~\ref{fig:r0dynamics}), enquanto no cenário combinado mantém-se próximo ou abaixo de 1 durante toda a campanha. Essa métrica empírica não é idêntica ao $R_{\text{eff}}(t) = R_0^{\text{eff}} \cdot S(t)/N$ da EDO --- que, pela teoria de campo médio, cruza o limiar 1 quando $S(t) = 1/R_0^{\text{eff}} = 11/30 \approx 36{,}7\%$ ---, mas fornece um diagnóstico consistente com a análise formal. A polarização permanece elevada ($\approx 0{,}58$) em todos os cenários, indicando que se trata de propriedade estrutural da distribuição inicial de orientações políticas e da dinâmica Deffuant-Weisbuch, e não meramente efeito das notícias falsas.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{figures/fig6_r0_efetivo.png}
+    \caption{Compartilhamentos acumulados médios por infectado ativo ao longo do tempo para cada cenário (Brasil, média sobre 30 replicações). A linha tracejada indica o limiar 1.}
+    \label{fig:r0dynamics}
+\end{figure}
 
 \subsection{Impacto Eleitoral}
+\label{subsec:electoral_impact}
 
-A margem crítica $M_c = 2 \cdot P_{\text{flip}} \cdot q_B \cdot I(T)$, onde $P_{\text{flip}} = 12\%$ (probabilidade condicional de mudança $B \to A$ dado infectado) e $q_B = 52\%$ (fração de infectados alinhados a $B$), ambos estimados do ABM. No cenário base: $M_c = 1{,}55\%$. No ataque: $M_c = 2{,}78\%$ --- eleições disputadas tornam-se vulneráveis. Com a política combinada: $M_c = 0{,}15\%$ --- reversão virtualmente impossível (Teorema~\ref{thm:reversal}).
+A desinformação altera não apenas a saúde informacional da população, mas o próprio resultado eleitoral. A margem crítica de reversão é $M_c = 2 \cdot P_{\text{flip}} \cdot q_B \cdot I(T)$ (Teorema~\ref{thm:reversal}), onde $P_{\text{flip}} = 12\%$ é a probabilidade condicional de mudança de voto $B \to A$ dado que o agente foi infectado, e $q_B = 52\%$ é a fração de agentes infectados originalmente alinhados ao candidato $B$; ambos foram estimados de trinta execuções do cenário base brasileiro durante a calibração inicial e, por estabilidade da distribuição empírica entre cenários, tratados como constantes. No cenário base, $M_c = 1{,}55\%$; sob ataque coordenado, $M_c = 2{,}78\%$, colocando eleições disputadas --- comuns em municípios brasileiros --- dentro da faixa de reversão; com a política combinada, $M_c = 0{,}15\%$, virtualmente eliminando a possibilidade de reversão induzida por desinformação. Todos os valores de $M_c$ por cenário foram independentemente verificados via Wolfram Language.
 
-\subsection{Resultados Cross-Country}
+\subsection{Comparação entre os Dez Países}
+\label{subsec:results_crosscountry}
+
+A Figura~\ref{fig:crosscountry_seir} apresenta a dinâmica SEIR sob o cenário base para os dez países, e a Figura~\ref{fig:crosscountry_comparison} compara taxas de infecção no dia da eleição para cada país e cenário; a Tabela~\ref{tab:crosscountry} reporta os valores numéricos. Três agrupamentos emergem da dinâmica base. O agrupamento de alta vulnerabilidade --- Venezuela, Bolívia, México e Colômbia --- registra infecção superior a 25\% no dia da eleição, com a Venezuela atingindo $47{,}1 \pm 2{,}0\%$ em razão da combinação de alta prevalência de bots (15\%), baixa educação midiática (0,20) e alta viralidade do conteúdo amplificado pela mídia estatal. O agrupamento intermediário --- Peru, Equador, Brasil --- apresenta infecção entre 12\% e 19\%, compartilhando ecossistemas dominados pelo WhatsApp com prevalência moderada de bots. O agrupamento de baixa vulnerabilidade --- Argentina, Chile, Uruguai --- mantém-se abaixo de 10\%, combinando maior educação midiática, infraestrutura mais robusta de verificação de fatos e, no caso da Argentina e do Chile, ecossistemas mais centrados no Twitter, onde a amplificação em redes abertas é parcialmente compensada por maior ceticismo dos usuários.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures_countries/fig_seir_by_country.png}
+    \caption{Dinâmica SEIR sob o cenário base para os dez países. T1 indica calibração direta com corpus (Brasil); T2, dados proxy robustos; T3, estimação indireta.}
+    \label{fig:crosscountry_seir}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures_countries/fig_infection_comparison.png}
+    \caption{Taxa de infecção no dia da eleição por país e cenário (média $\pm$ DP, 30 replicações).}
+    \label{fig:crosscountry_comparison}
+\end{figure}
 
 \begin{table}[H]
 \centering
@@ -352,30 +381,40 @@ A margem crítica $M_c = 2 \cdot P_{\text{flip}} \cdot q_B \cdot I(T)$, onde $P_
 \toprule
 \textbf{Cenário} & \textbf{Métrica} & \textbf{BR} & \textbf{MX} & \textbf{AR} & \textbf{CO} & \textbf{CL} & \textbf{PE} & \textbf{VE} & \textbf{EC} & \textbf{BO} & \textbf{UY} \\
 \midrule
-Base & Infect.\ (\%) & $12,4{\pm}1,4$ & $27,7{\pm}1,1$ & $9,0{\pm}1,0$ & $25,9{\pm}1,8$ & $4,1{\pm}0,6$ & $18,8{\pm}1,4$ & $47,1{\pm}2,0$ & $18,7{\pm}1,2$ & $29,3{\pm}2,1$ & $1,3{\pm}0,4$ \\
-Ataque & Infect.\ (\%) & $20,9{\pm}1,4$ & $38,5{\pm}2,3$ & $16,2{\pm}1,1$ & $40,4{\pm}2,1$ & $7,6{\pm}1,2$ & $31,1{\pm}1,6$ & $53,3{\pm}2,1$ & $31,1{\pm}1,9$ & $45,2{\pm}2,1$ & $2,4{\pm}0,6$ \\
-Combinado & Infect.\ (\%) & $1,2{\pm}0,3$ & $3,0{\pm}0,8$ & $0,7{\pm}0,3$ & $3,0{\pm}0,7$ & $0,3{\pm}0,1$ & $1,8{\pm}0,5$ & $6,7{\pm}1,0$ & $1,7{\pm}0,4$ & $3,5{\pm}0,7$ & $0,1{\pm}0,2$ \\
+Base       & Infect.\ (\%) & $12,4{\pm}1,4$ & $27,7{\pm}1,1$ & $9,0{\pm}1,0$ & $25,9{\pm}1,8$ & $4,1{\pm}0,6$ & $18,8{\pm}1,4$ & $47,1{\pm}2,0$ & $18,7{\pm}1,2$ & $29,3{\pm}2,1$ & $1,3{\pm}0,4$ \\
+Ataque     & Infect.\ (\%) & $20,9{\pm}1,4$ & $38,5{\pm}2,3$ & $16,2{\pm}1,1$ & $40,4{\pm}2,1$ & $7,6{\pm}1,2$ & $31,1{\pm}1,6$ & $53,3{\pm}2,1$ & $31,1{\pm}1,9$ & $45,2{\pm}2,1$ & $2,4{\pm}0,6$ \\
+Combinado  & Infect.\ (\%) & $1,2{\pm}0,3$  & $3,0{\pm}0,8$  & $0,7{\pm}0,3$ & $3,0{\pm}0,7$  & $0,3{\pm}0,1$ & $1,8{\pm}0,5$  & $6,7{\pm}1,0$  & $1,7{\pm}0,4$  & $3,5{\pm}0,7$  & $0,1{\pm}0,2$ \\
+Base       & $M_c$ (\%)    & $1,55$         & $3,46$         & $1,12$        & $3,23$         & $0,51$        & $2,35$         & $5,88$         & $2,33$         & $3,66$         & $0,16$        \\
+Combinado  & $M_c$ (\%)    & $0,15$         & $0,37$         & $0,09$        & $0,37$         & $0,04$        & $0,22$         & $0,84$         & $0,21$         & $0,44$         & $0,01$        \\
 \bottomrule
 \end{tabular}%
 }
-\caption{Taxas de infecção no dia da eleição por país e cenário (média $\pm$ DP, 30 replicações).}
+\caption{Taxas de infecção no dia da eleição e margem crítica $M_c = 2 \cdot P_{\text{flip}} \cdot q_B \cdot I(T)$ por país e cenário (média $\pm$ DP, 30 replicações). $P_{\text{flip}} = 0{,}12$ e $q_B = 0{,}52$ mantidos constantes; valores de $M_c$ independentemente verificados via Wolfram Language.}
 \label{tab:crosscountry}
 \end{table}
 
-Três padrões emergem: (1) a política combinada é universalmente eficaz (86--93\% de redução em todos os 10 países); (2) intervenções individuais dependem do contexto nacional (educação midiática é mais eficaz em países com educação base já moderada --- Argentina e Uruguai --- do que na Venezuela, onde fonte persistente de bots limita o efeito a $-45\%$); (3) ataques de bots amplificam vulnerabilidade de forma não uniforme, com ``efeito teto'' nos países de alta infecção base.
+Três padrões se destacam. A política combinada é universalmente eficaz, reduzindo a infecção em 86\% a 93\% em todos os dez países; mesmo a Venezuela, o caso mais vulnerável, registra queda de 47,1\% para 6,7\%. As intervenções individuais, por outro lado, dependem do contexto nacional: a educação midiática, a ``vacina cognitiva'', é mais eficaz na Argentina ($-70\%$) e no Uruguai ($-69\%$), onde a educação midiática base já é moderada e os ganhos adicionais operam em população menos saturada pela desinformação, ao passo que na Venezuela a mesma intervenção produz apenas $-45\%$ porque a fonte persistente de bots apoiados por agentes estatais reinjeta conteúdo continuamente. Ataques de bots amplificam a vulnerabilidade de forma não uniforme --- o aumento proporcional é maior nos países de cenário base mais baixo (Chile $+85\%$, Argentina $+81\%$) do que nos próximos à saturação (Venezuela $+13\%$) ---, refletindo um ``efeito teto'' que tem implicação clara para políticas: países de baixa vulnerabilidade não estão a salvo de ataques coordenados, pois seus cenários base mais baixos geram amplificação relativa mais elevada. A Figura~\ref{fig:crosscountry_time} confirma esses padrões ao longo dos cem dias de campanha: no cenário base, a Venezuela apresenta crescimento acentuado, com Bolívia, México e Colômbia seguindo padrão atenuado, enquanto sob a política combinada todos os países convergem para abaixo de 7\%. A Figura~\ref{fig:crosscountry_boxplot} mostra que a variância intrapaís é baixa (tipicamente inferior a 2~pp), e todos os cinquenta testes de Mann-Whitney $U$ que comparam cenário base contra cada política em cada país são estatisticamente significativos após correção de Bonferroni com $\alpha_{\text{Bonf}} = 0{,}001$, com todos os tamanhos de efeito classificados como grandes pela escala de Cohen ($|d| \geq 0{,}8$; detalhes no Apêndice~\ref{app:statistics}).\footnote{O teste com menor tamanho de efeito é a resposta da Venezuela à regulação de bots isolada ($|d| = 1{,}52$), ainda classificado como ``muito grande'' na escala estendida de Sawilowsky.}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{figures_countries/fig_infection_comparison.png}
-    \caption{Taxa de infecção no dia da eleição por país e cenário (média $\pm$ DP, 30 replicações).}
-    \label{fig:crosscountry_comparison}
+    \includegraphics[width=\textwidth]{figures_countries/fig_infection_timeseries.png}
+    \caption{Taxa de infecção ao longo dos 100 dias de campanha, por país. Esquerda: cenário base. Direita: política combinada. Áreas sombreadas representam $\pm 1$ DP.}
+    \label{fig:crosscountry_time}
 \end{figure}
 
-% ============================================================
-\section{Comparação Campo Médio vs.\ ABM}
-\label{sec:comparison}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures_countries/fig_boxplot_election.png}
+    \caption{Distribuições das taxas de infecção no dia da eleição por país e cenário (30 replicações cada).}
+    \label{fig:crosscountry_boxplot}
+\end{figure}
 
-Três vias de comparação: EDO canônica ($\beta = 0{,}3$, bots como condição inicial), EDO com bots como fonte permanente ($\beta_{\text{SEIR}} = 0{,}08$, $I_B = 7\%$ constante) e ABM. A EDO canônica prevê $I(100) = 2{,}0\%$; a EDO com bots produz $I_h(100) \approx 1{,}1\%$; o ABM alcança $I_{\text{hum}}(100) \approx 12{,}4\%$. A divergência de 11,3~pp tem quatro causas: (1) bots como fonte permanente vs.\ condição inicial; (2) desigualdade de Jensen pela heterogeneidade; (3) hubs da rede livre de escala; (4) estocasticidade intrínseca do ABM \citep{pastor2001epidemic}.
+A Venezuela ocupa posição singular na análise de reversão eleitoral: o cenário base já produz $M_c = 5{,}88\%$, acima da margem de 1,49\% entre Maduro e Capriles em 2013; sob a política combinada, porém, $M_c$ cai para 0,84\%, ficando abaixo desse referencial. Peru (margem histórica mais apertada de 0,25\%), Colômbia (plebiscito de 2016, 0,43\%), Bolívia (2019, 0,50\%) e México (2006, 0,56\%) têm suas margens históricas abaixo das margens críticas do cenário base (respectivamente 2,35\%, 3,23\%, 3,66\% e 3,46\%), indicando que um ataque coordenado de bots colocaria essas eleições dentro da faixa de reversão. Sob a política combinada, todas as margens críticas caem abaixo das margens históricas mais apertadas de cada país, tornando a reversão eleitoral por desinformação matematicamente implausível em todos os dez contextos analisados.
+
+\subsection{Divergência entre Campo Médio e Modelo Baseado em Agentes}
+\label{subsec:comparison}
+
+A validação cruzada entre as previsões analíticas e computacionais é essencial para avaliar a utilidade preditiva das derivações formais. Comparam-se três formulações: a EDO canônica com $\beta = 0{,}3$ e bots como condição inicial, a EDO com bots como fonte permanente ($\beta_{\text{SEIR}} = 0{,}08$, $I_B = 7\%$ constante) e o MBA com mil agentes. A EDO canônica prevê $I(100) = 2{,}0\%$: a epidemia decai porque $R_0^{\text{hum}} < 1$ e os bots são tratados apenas como condição inicial, não como fonte permanente. A EDO com bots produz $I_h(100) \approx 1{,}1\%$ de infecções humanas mais o componente permanente de 7\% de bots. O MBA alcança $I_{\text{hum}}(100) \approx 12{,}4\%$. A divergência de 11,3 pontos percentuais entre o MBA e a EDO com bots tem quatro causas complementares: os bots do MBA operam como fonte permanente propagando para três a cinco vizinhos por passo, enquanto a aproximação de campo médio suaviza esse comportamento pontual; a heterogeneidade cognitiva implica que a média aritmética dos parâmetros não é igual ao comportamento médio do sistema, consequência direta da desigualdade de Jensen; a rede livre de escala cria hubs que aceleram a propagação de forma desproporcional, efeito ausente por construção na aproximação de campo médio \citep{pastor2001epidemic}; e a estocasticidade intrínseca do MBA gera variância não capturada pela solução determinística. Essa divergência não invalida as demonstrações analíticas do Apêndice~\ref{app:proofs}, que estabelecem propriedades qualitativamente corretas --- conservação, estabilidade, condições de extinção --- e fornecem limites teóricos, mas implica que o MBA é indispensável para previsões quantitativas em contextos com forte heterogeneidade e topologia de rede complexa.
 
 % ============================================================
 \section{Discussão}
