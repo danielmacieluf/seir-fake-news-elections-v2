@@ -16,13 +16,17 @@
 \usepackage{array}
 \usepackage{multirow}
 \usepackage{tabularx}
-\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue,breaklinks=true]{hyperref}
 \usepackage{doi}
+\usepackage{xurl}
 
 \geometry{a4paper, top=2.2cm, bottom=2.2cm, left=2.3cm, right=2.3cm}
 \setlength{\parskip}{2pt}
 \setlength{\textfloatsep}{10pt plus 2pt minus 2pt}
 \setlength{\intextsep}{10pt plus 2pt minus 2pt}
+\setlength{\emergencystretch}{3em}
+\tolerance=1000
+\hbadness=1000
 
 % Ambientes de teoremas (PT-BR)
 \theoremstyle{definition}
@@ -446,7 +450,7 @@ A conclusão teórica central é que a desinformação eleitoral não constitui 
 A conclusão prática central é que apenas a combinação das três intervenções --- educação midiática, verificação de fatos e regulação de bots --- reduz simultaneamente $R_0^{\text{comb}}$ abaixo de 1 e a margem crítica eleitoral abaixo da margem histórica mais apertada de cada país, incluindo na Venezuela, cujo pior caso sob a política combinada (0,84\%) fica aquém dos 1,49\% de 2013. Esse efeito é supralinear em relação à independência multiplicativa e preservado em todo o espectro regional de vulnerabilidade. A conclusão metodológica é que a verificação simbólica independente das derivações --- com dois sistemas algébricos distintos, SymPy e Wolfram Language --- e a replicabilidade integral via protocolo ODD \citep{grimm2010odd} e dados de simulação arquivados estabelecem o padrão esperado pelas ciências sociais computacionais contemporâneas. Trabalhos futuros naturais incluem análise de sensibilidade global com índices de Sobol \citep{saltelli2008global}, incorporação de redes dinâmicas e algoritmos de recomendação, calibração com fontes primárias de autoridades eleitorais nacionais, e investigação empírica aprofundada dos casos-limite venezuelano e boliviano por meio de coleta de dados primários onde as condições institucionais o permitam.
 
 % ============================================================
-\bibliographystyle{apalike}
+\bibliographystyle{plainnat}
 \bibliography{references}
 
 % ============================================================
