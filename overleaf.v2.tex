@@ -19,7 +19,10 @@
 \usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
 \usepackage{doi}
 
-\geometry{a4paper, margin=2.5cm}
+\geometry{a4paper, top=2.2cm, bottom=2.2cm, left=2.3cm, right=2.3cm}
+\setlength{\parskip}{2pt}
+\setlength{\textfloatsep}{10pt plus 2pt minus 2pt}
+\setlength{\intextsep}{10pt plus 2pt minus 2pt}
 
 % Ambientes de teoremas (PT-BR)
 \theoremstyle{definition}
@@ -465,7 +468,7 @@ Soma das cinco equações \eqref{eq:dS}--\eqref{eq:dV}: todos os termos se cance
 Se compartimentos iniciais são não-negativos e somam 1, então são não-negativos para todo $t \geq 0$.
 \end{lema}
 \begin{proof}
-Verifica-se que cada variável tem derivada $\geq 0$ quando atinge zero: $dS/dt|_{S=0} = \delta R \geq 0$; análogo para $E, I, R, V$.
+Verifica-se que cada variável tem derivada não negativa quando atinge zero: $dS/dt|_{S=0} = \delta R \geq 0$; análogo para $E$, $I$, $R$ e $V$.
 \end{proof}
 
 \begin{lema}[Sem propagação sem fonte]
@@ -578,8 +581,9 @@ Para a comparação cross-country, replicamos a análise $U$ de Mann-Whitney tes
 
 \begin{table}[H]
 \centering
-\footnotesize
-\setlength{\tabcolsep}{5pt}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{0.95}
 \begin{tabular}{llrrrc}
 \toprule
 \textbf{País} & \textbf{Cenário} & $\Delta I$ (pp) & $|d|$ & $p$ & Sig.\ Bonf. \\
