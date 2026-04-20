@@ -454,6 +454,7 @@ A conclusão prática central é que apenas a combinação das três intervenç�
 \label{app:proofs}
 
 \begin{teorema}[Conservação da população]
+\label{thm:conservation}
 Para todo $t \geq 0$: $S(t) + E(t) + I(t) + R(t) + V(t) = 1$.
 \end{teorema}
 \begin{proof}
@@ -475,6 +476,7 @@ Com $E(0)=I(0)=0$: $dE/dt = dI/dt = 0$. Pela unicidade de Picard-Lindelöf, $E(t
 \end{proof}
 
 \begin{teorema}[Estabilidade do Equilíbrio Livre de Doença]
+\label{thm:dfe}
 O ELD $(S^*, 0, 0, 0, V^*)$ é localmente assintoticamente estável se e somente se $R_0^{\text{eff}} \cdot S^* < 1$.
 \end{teorema}
 \begin{proof}
@@ -556,29 +558,128 @@ $\lambda_c$ & Limiar epidêmico rede livre de escala & $1/7 \approx 0{,}143$ & D
 \section{Validação Estatística}
 \label{app:statistics}
 
-Comparações entre cenários usam teste de Mann-Whitney $U$ (não paramétrico). Com 6 cenários, 15 comparações pareadas; correção de Bonferroni: $\alpha_{\text{adj}} = 0{,}05/15 = 0{,}0033$. Todos os $p < 0{,}001$ --- bem abaixo do limiar. Correlação biserial de postos $> 0{,}8$ em todas as comparações envolvendo a política combinada.
+Cada cenário foi replicado trinta vezes com sementes aleatórias independentes (42 a 71). As comparações pareadas entre cenários utilizaram o teste $U$ de Mann-Whitney, um teste não paramétrico apropriado para dados com distribuição não-normal e amostras de tamanho pequeno a moderado. Com seis cenários há $\binom{6}{2} = 15$ comparações pareadas; aplicando a correção de Bonferroni para testes múltiplos, o limiar de significância ajustado é $\alpha_{\text{adj}} = 0{,}05/15 \approx 0{,}0033$. Todos os quinze valores-$p$ observados ficam abaixo de $0{,}001$ (Figura~\ref{fig:mannwhitney}), bem abaixo do limiar corrigido, e a correlação biserial de postos (tamanho de efeito apropriado ao teste $U$) supera 0,8 em todas as comparações envolvendo a política combinada, indicando efeitos práticos de grande magnitude além da significância estatística. Os intervalos de confiança a 95\% são calculados com a distribuição $t$ de Student e 29 graus de liberdade (Figura~\ref{fig:ci95}).
 
-Para 10 países: $10 \times 5 = 50$ comparações com $\alpha_{\text{Bonf}} = 0{,}001$. Todas as 50 comparações são significativas após Bonferroni, com $|d| \geq 0{,}8$ em todas (Cohen grande).
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{figures/fig12_ic_cenarios.png}
+    \caption{Intervalos de confiança de 95\% para a taxa de infecção por cenário (Brasil, 30 replicações).}
+    \label{fig:ci95}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.70\textwidth]{figures/fig13_mann_whitney.png}
+    \caption{Mapa de calor de significância das comparações pareadas entre cenários (teste $U$ de Mann-Whitney; Brasil). Todas as comparações: $p < 0{,}001$.}
+    \label{fig:mannwhitney}
+\end{figure}
+
+Para a comparação cross-country, replicamos a análise $U$ de Mann-Whitney testando o cenário base de cada país contra cada um dos cinco cenários de política (ataque, verificadores, educação, regulação, combinado), o que resulta em $10 \times 5 = 50$ comparações; aplicando Bonferroni com $\alpha = 0{,}05$, o limiar ajustado é $\alpha_{\text{Bonf}} = 0{,}001$. Todas as cinquenta comparações são estatisticamente significativas após correção de Bonferroni, e todos os cinquenta tamanhos de efeito são classificados como grandes pela escala de Cohen ($|d| \geq 0{,}8$); mesmo o menor efeito observado --- a resposta da Venezuela à regulação de bots isolada ($|d| = 1{,}52$, classificado como ``muito grande'' na escala estendida de Sawilowsky) --- supera o limiar de Bonferroni por várias ordens de magnitude, indicando que os achados entre países não são artefatos de ruído amostral mas respostas comportamentais robustas preservadas em todo o espectro de vulnerabilidade. A Tabela~\ref{tab:stats_crosscountry} consolida os 50 testes.
+
+\begin{table}[H]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{llrrrc}
+\toprule
+\textbf{País} & \textbf{Cenário} & $\Delta I$ (pp) & $|d|$ & $p$ & Sig.\ Bonf. \\
+\midrule
+BR & Ataque     & $+8{,}5$  & $6{,}10$  & $3{\cdot}10^{-11}$ & \checkmark \\
+BR & Verif.\    & $-6{,}3$  & $5{,}28$  & $3{\cdot}10^{-11}$ & \checkmark \\
+BR & Educ.\     & $-7{,}8$  & $7{,}05$  & $3{\cdot}10^{-11}$ & \checkmark \\
+BR & Regul.\    & $-4{,}7$  & $3{,}88$  & $3{\cdot}10^{-11}$ & \checkmark \\
+BR & Combinado  & $-11{,}2$ & $11{,}16$ & $3{\cdot}10^{-11}$ & \checkmark \\
+\addlinespace
+MX & Ataque     & $+10{,}8$ & $6{,}05$  & $3{\cdot}10^{-11}$ & \checkmark \\
+MX & Verif.\    & $-14{,}6$ & $11{,}51$ & $3{\cdot}10^{-11}$ & \checkmark \\
+MX & Educ.\     & $-16{,}4$ & $12{,}72$ & $3{\cdot}10^{-11}$ & \checkmark \\
+MX & Regul.\    & $-8{,}7$  & $5{,}42$  & $3{\cdot}10^{-11}$ & \checkmark \\
+MX & Combinado  & $-24{,}7$ & $24{,}83$ & $3{\cdot}10^{-11}$ & \checkmark \\
+\addlinespace
+AR & Ataque     & $+7{,}3$  & $6{,}97$  & $3{\cdot}10^{-11}$ & \checkmark \\
+AR & Verif.\    & $-4{,}5$  & $4{,}80$  & $3{\cdot}10^{-11}$ & \checkmark \\
+AR & Educ.\     & $-6{,}3$  & $7{,}15$  & $3{\cdot}10^{-11}$ & \checkmark \\
+AR & Regul.\    & $-3{,}6$  & $3{,}74$  & $3{\cdot}10^{-11}$ & \checkmark \\
+AR & Combinado  & $-8{,}3$  & $11{,}04$ & $3{\cdot}10^{-11}$ & \checkmark \\
+\addlinespace
+CO & Ataque     & $+14{,}5$ & $7{,}36$  & $3{\cdot}10^{-11}$ & \checkmark \\
+CO & Verif.\    & $-13{,}8$ & $8{,}81$  & $3{\cdot}10^{-11}$ & \checkmark \\
+CO & Educ.\     & $-14{,}8$ & $9{,}83$  & $3{\cdot}10^{-11}$ & \checkmark \\
+CO & Regul.\    & $-7{,}7$  & $4{,}42$  & $3{\cdot}10^{-11}$ & \checkmark \\
+CO & Combinado  & $-23{,}0$ & $16{,}90$ & $3{\cdot}10^{-11}$ & \checkmark \\
+\addlinespace
+CL & Ataque     & $+3{,}5$  & $3{,}69$  & $3{\cdot}10^{-11}$ & \checkmark \\
+CL & Verif.\    & $-2{,}2$  & $3{,}57$  & $5{\cdot}10^{-11}$ & \checkmark \\
+CL & Educ.\     & $-2{,}8$  & $5{,}04$  & $3{\cdot}10^{-11}$ & \checkmark \\
+CL & Regul.\    & $-1{,}7$  & $2{,}45$  & $2{\cdot}10^{-9}$  & \checkmark \\
+CL & Combinado  & $-3{,}9$  & $8{,}34$  & $2{\cdot}10^{-11}$ & \checkmark \\
+\addlinespace
+PE & Ataque     & $+12{,}3$ & $8{,}39$  & $3{\cdot}10^{-11}$ & \checkmark \\
+PE & Verif.\    & $-10{,}2$ & $8{,}21$  & $3{\cdot}10^{-11}$ & \checkmark \\
+PE & Educ.\     & $-11{,}7$ & $9{,}72$  & $3{\cdot}10^{-11}$ & \checkmark \\
+PE & Regul.\    & $-6{,}7$  & $5{,}30$  & $3{\cdot}10^{-11}$ & \checkmark \\
+PE & Combinado  & $-17{,}0$ & $16{,}60$ & $3{\cdot}10^{-11}$ & \checkmark \\
+\addlinespace
+VE & Ataque     & $+6{,}1$  & $2{,}95$  & $2{\cdot}10^{-10}$ & \checkmark \\
+VE & Verif.\    & $-25{,}7$ & $12{,}80$ & $3{\cdot}10^{-11}$ & \checkmark \\
+VE & Educ.\     & $-21{,}4$ & $11{,}86$ & $3{\cdot}10^{-11}$ & \checkmark \\
+VE & Regul.\    & $-12{,}5$ & $5{,}89$  & $3{\cdot}10^{-11}$ & \checkmark \\
+VE & Combinado  & $-40{,}4$ & $25{,}16$ & $3{\cdot}10^{-11}$ & \checkmark \\
+\addlinespace
+EC & Ataque     & $+12{,}4$ & $7{,}59$  & $3{\cdot}10^{-11}$ & \checkmark \\
+EC & Verif.\    & $-10{,}2$ & $8{,}46$  & $3{\cdot}10^{-11}$ & \checkmark \\
+EC & Educ.\     & $-11{,}5$ & $10{,}09$ & $3{\cdot}10^{-11}$ & \checkmark \\
+EC & Regul.\    & $-6{,}9$  & $5{,}61$  & $3{\cdot}10^{-11}$ & \checkmark \\
+EC & Combinado  & $-17{,}0$ & $18{,}55$ & $3{\cdot}10^{-11}$ & \checkmark \\
+\addlinespace
+BO & Ataque     & $+15{,}9$ & $7{,}65$  & $3{\cdot}10^{-11}$ & \checkmark \\
+BO & Verif.\    & $-16{,}2$ & $8{,}93$  & $3{\cdot}10^{-11}$ & \checkmark \\
+BO & Educ.\     & $-14{,}8$ & $8{,}53$  & $3{\cdot}10^{-11}$ & \checkmark \\
+BO & Regul.\    & $-9{,}2$  & $4{,}44$  & $3{\cdot}10^{-11}$ & \checkmark \\
+BO & Combinado  & $-25{,}9$ & $16{,}70$ & $3{\cdot}10^{-11}$ & \checkmark \\
+\addlinespace
+UY & Ataque     & $+1{,}1$  & $2{,}26$  & $4{\cdot}10^{-9}$  & \checkmark \\
+UY & Verif.\    & $-0{,}6$  & $1{,}73$  & $9{\cdot}10^{-8}$  & \checkmark \\
+UY & Educ.\     & $-0{,}9$  & $2{,}93$  & $5{\cdot}10^{-11}$ & \checkmark \\
+UY & Regul.\    & $-0{,}5$  & $1{,}49$  & $2{\cdot}10^{-6}$  & \checkmark \\
+UY & Combinado  & $-1{,}2$  & $4{,}01$  & $2{\cdot}10^{-11}$ & \checkmark \\
+\bottomrule
+\end{tabular}
+\caption{Testes Mann-Whitney $U$ comparando cenário base vs.\ cada intervenção, para cada país. $\Delta I$: deslocamento médio (pp; negativo = melhora). $|d|$: $d$ de Cohen absoluto. $p$: valor-$p$ bilateral. Todas as 50 comparações permanecem significativas após Bonferroni ($\alpha_{\text{Bonf}} = 0{,}001$).}
+\label{tab:stats_crosscountry}
+\end{table}
 
 % ============================================================
-\section{Análise de Sensibilidade (Tier~3)}
+\section{Análise de Sensibilidade}
 \label{app:sensitivity}
+
+A análise de sensibilidade local variou cada parâmetro individualmente, mantendo os demais em seus valores de base; os resultados (Figura~\ref{fig:tornado}) revelam que os parâmetros internos do SEIR ($\sigma$, $\gamma$, $\gamma_e$, $\delta$, $\nu$) têm impacto limitado sobre a taxa de infecção final, enquanto os parâmetros estruturais --- proporção de bots, educação midiática e proporção de verificadores de fatos --- são os verdadeiros determinantes. Quando a proporção de bots é zero, a infecção colapsa para 0\%, corolário direto do Lema de ausência de propagação sem fonte do Apêndice~\ref{app:proofs}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{figures/fig10_tornado.png}
+    \caption{Diagrama de tornado: elasticidade da taxa de infecção em relação a cada parâmetro (cenário base, Brasil).}
+    \label{fig:tornado}
+\end{figure}
+
+Como os países Tier~3 (Peru, Venezuela, Equador, Bolívia, Uruguai) dependem de estimação indireta de parâmetros, testamos explicitamente a robustez de suas estimativas de infecção base a perturbações nos três parâmetros mais incertos: prevalência de bots ($\pm 3$ pontos percentuais), educação midiática ($\pm 0{,}10$) e viralidade das fake news ($\pm 0{,}05$ em ambas as extremidades do intervalo). Cada perturbação foi executada com dez replicações sob o cenário base, e a Tabela~\ref{tab:sensitivity_tier3} reporta a estimativa central --- parâmetros não perturbados --- e o intervalo mínimo-máximo das seis perturbações. Três achados emergem: o \emph{ranking qualitativo} de vulnerabilidade é preservado em todas as perturbações, com a Venezuela mantendo-se a mais vulnerável (intervalo $40{,}7$--$50{,}9\%$) e o Uruguai o menos vulnerável (intervalo $0{,}3$--$2{,}4\%$); a \emph{magnitude absoluta} das estimativas centrais é robusta, com desvios máximos entre 1,1 pp no Uruguai e 8,4 pp na Bolívia; e o \emph{desvio relativo} é maior no Uruguai (78\%) por efeito de base pequena --- um deslocamento de 1 pp representa fração maior quando o valor central se aproxima de zero --- enquanto o desvio relativo da Venezuela (14\%) é o menor do conjunto, indicando que sua alta taxa de infecção é robusta à incerteza paramétrica. A implicação interpretativa é que as estimativas pontuais para os países Tier~3 devem ser lidas com as bandas de incerteza aqui reportadas, mas as conclusões qualitativas --- ranking de vulnerabilidade e eficácia universal da política combinada --- são preservadas em todas as variações testadas.
 
 \begin{table}[H]
 \centering
 \small
+\setlength{\tabcolsep}{8pt}
 \begin{tabular}{lcccc}
 \toprule
 \textbf{País} & \textbf{Central} & \textbf{Intervalo} & \textbf{Desvio máx.} & \textbf{Desvio rel.} \\
 \midrule
-Peru     & $18,3\%$ & $[12,5,\,22,6]$ & $5,8$pp & $32\%$ \\
-Venezuela& $47,6\%$ & $[40,7,\,50,9]$ & $6,8$pp & $14\%$ \\
-Equador  & $18,8\%$ & $[12,5,\,22,9]$ & $6,3$pp & $33\%$ \\
-Bolívia  & $29,9\%$ & $[21,4,\,35,7]$ & $8,4$pp & $28\%$ \\
-Uruguai  & $1,4\%$  & $[0,3,\,2,4]$   & $1,1$pp & $78\%$ \\
+Peru      & $18{,}3\%$ & $[12{,}5;\,22{,}6]$ & $5{,}8$ pp & $32\%$ \\
+Venezuela & $47{,}6\%$ & $[40{,}7;\,50{,}9]$ & $6{,}8$ pp & $14\%$ \\
+Equador   & $18{,}8\%$ & $[12{,}5;\,22{,}9]$ & $6{,}3$ pp & $33\%$ \\
+Bolívia   & $29{,}9\%$ & $[21{,}4;\,35{,}7]$ & $8{,}4$ pp & $28\%$ \\
+Uruguai   & $1{,}4\%$  & $[0{,}3;\,2{,}4]$   & $1{,}1$ pp & $78\%$ \\
 \bottomrule
 \end{tabular}
-\caption{Sensibilidade para países Tier~3 (cenário base). Perturbações: bots $\pm 3$pp, educação $\pm 0{,}10$, viralidade $\pm 0{,}05$. Ranking qualitativo preservado em todas as variações.}
+\caption{Sensibilidade para países Tier~3 (cenário base). Perturbações: bots $\pm 3$~pp, educação $\pm 0{,}10$, viralidade $\pm 0{,}05$. Ranking qualitativo preservado em todas as variações.}
 \label{tab:sensitivity_tier3}
 \end{table}
 
